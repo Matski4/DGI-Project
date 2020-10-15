@@ -12,7 +12,7 @@ using TriangleNet.Geometry;
 
 public class LowPolyTerrainScript : MonoBehaviour
 {
-    public Vector2 terrainDimensions = new Vector2(10f, 10f);
+    public Vector2Int terrainDimensions = new Vector2Int(10, 10);
     //public int terrainPoints = 10;
     public int sampleTries = 10;
     public float radiusError = 2f;
@@ -94,12 +94,19 @@ public class LowPolyTerrainScript : MonoBehaviour
             meshPoints[unity_v1] = new Vector3((float)tri.GetVertex(1).x, 0, (float)tri.GetVertex(1).y);
             meshPoints[unity_v2] = new Vector3((float)tri.GetVertex(0).x, 0, (float)tri.GetVertex(0).y);
 
+            // Sample Perlin noise for height values
+            meshPoints[unity_v0].y = Mathf.PerlinNoise(meshPoints[unity_v0].x, meshPoints[unity_v0].z) * 5;
+            meshPoints[unity_v1].y = Mathf.PerlinNoise(meshPoints[unity_v1].x, meshPoints[unity_v1].z) * 5;
+            meshPoints[unity_v2].y = Mathf.PerlinNoise(meshPoints[unity_v2].x, meshPoints[unity_v2].z) * 5;
+
+
             Vector3 triangleNormal = Vector3.Cross(meshPoints[unity_v1] - meshPoints[unity_v0], meshPoints[unity_v2] - meshPoints[unity_v0]);   // Cross product gives us the triangle normal
             normals[unity_v0] = triangleNormal;
             normals[unity_v1] = triangleNormal;
             normals[unity_v2] = triangleNormal;
 
-            Color randomColor = new Color((tris/3) % 3, ((tris / 3)+1) % 3, ((tris / 3)+2) % 3);
+            Color randomColor = new Color((tris/3) % 3 -1, ((tris / 3)+1) % 3 -1, ((tris / 3)+2) % 3 -1);
+            randomColor = new Color(Random.Range(0f,1f), Random.Range(0f, 1f), Random.Range(0f, 1f));
 
             colors[unity_v0] = randomColor;
             colors[unity_v1] = randomColor;
