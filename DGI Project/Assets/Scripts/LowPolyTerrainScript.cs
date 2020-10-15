@@ -145,9 +145,9 @@ public class LowPolyTerrainScript : MonoBehaviour
 
         for(int i = 0; i < meshPoints.Length; ++i) {
             meshPoints[i].y = (Mathf.InverseLerp(minValue, maxValue, meshPoints[i].y) * 2 - 0.7f) * heightScale;
-            if (meshPoints[i].y < seaLevel)
+            if (meshPoints[i].y < seaLevel - 1f)
             {
-                meshPoints[i].y *= (1 - dampening);
+                meshPoints[i].y /= heightScale;
             }
         }
 
