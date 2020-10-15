@@ -12,13 +12,25 @@ using TriangleNet.Geometry;
 
 public class LowPolyTerrainScript : MonoBehaviour
 {
+    [Header("Terrain settings")]
     public Vector2Int terrainDimensions = new Vector2Int(10, 10);
-    //public int terrainPoints = 10;
+    public float heightScale = 10f;
+    [Range(0f, 1f)]
+    public float seaLevel;
+    [Range(0f, 1f)]
+    public float dampening;
+    [Header("Poisson sampling settings")]
     public int sampleTries = 10;
     public float radiusError = 2f;
+    [Header("Perlin noise settings")]
+    public Vector2 perlinOffset = new Vector2(0,0);
+    public int octaves = 1;
+    [Range(0f, 1f)]
+    public float persistance = 1f;
+    public Gradient gradient;
+    [Header("Click checkbox to generate mesh")]
     public bool generateMesh = false;
 
-    UnityEngine.Mesh terrainMesh;
     MeshFilter mf;
 
     List<Vector2> poissonPoints;
@@ -53,6 +65,7 @@ public class LowPolyTerrainScript : MonoBehaviour
         mf = GetComponent<MeshFilter>();
         if (mf.sharedMesh == null) {
             mf.sharedMesh = new UnityEngine.Mesh();
+            mf.sharedMesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32;
         }
         
         // Get a list of Vector2:s from the poisson disc sampling, these are our vertices
@@ -95,10 +108,9 @@ public class LowPolyTerrainScript : MonoBehaviour
             meshPoints[unity_v2] = new Vector3((float)tri.GetVertex(0).x, 0, (float)tri.GetVertex(0).y);
 
             // Sample Perlin noise for height values
-            meshPoints[unity_v0].y = Mathf.PerlinNoise(meshPoints[unity_v0].x, meshPoints[unity_v0].z) * 5;
-            meshPoints[unity_v1].y = Mathf.PerlinNoise(meshPoints[unity_v1].x, meshPoints[unity_v1].z) * 5;
-            meshPoints[unity_v2].y = Mathf.PerlinNoise(meshPoints[unity_v2].x, meshPoints[unity_v2].z) * 5;
-
+            meshPoints[unity_v0].y = PerlinNoiseGenerator.GetHeightValue(meshPoints[unity_v0], terrainDimensions, perlinOffset, octaves, persistance) * 2 - 1;
+            meshPoints[unity_v1].y = PerlinNoiseGenerator.GetHeightValue(meshPoints[unity_v1], terrainDimensions, perlinOffset, octaves, persistance) * 2 - 1;
+            meshPoints[unity_v2].y = PerlinNoiseGenerator.GetHeightValue(meshPoints[unity_v2], terrainDimensions, perlinOffset, octaves, persistance) * 2 - 1;
 
             Vector3 triangleNormal = Vector3.Cross(meshPoints[unity_v1] - meshPoints[unity_v0], meshPoints[unity_v2] - meshPoints[unity_v0]);   // Cross product gives us the triangle normal
             normals[unity_v0] = triangleNormal;
@@ -122,6 +134,36 @@ public class LowPolyTerrainScript : MonoBehaviour
             tris += 3;
         }
 
+
+        // Then we normalize the vector heights so that we actually get triangles at "0" and maxheight
+        float minValue = float.MaxValue;
+        float maxValue = float.MinValue;
+        foreach (Vector3 vertex in meshPoints) {
+            if (vertex.y > maxValue) { maxValue = vertex.y; }
+            if (vertex.y < minValue) { minValue = vertex.y; }
+        }
+
+        for(int i = 0; i < meshPoints.Length; ++i) {
+            meshPoints[i].y = (Mathf.InverseLerp(minValue, maxValue, meshPoints[i].y) * 2 - 0.7f) * heightScale;
+            if (meshPoints[i].y < seaLevel)
+            {
+                meshPoints[i].y *= (1 - dampening);
+            }
+        }
+
+
+        for (int i = 0; i < meshPoints.Length-2; i += 3)
+        {
+            float triangleCentreHeight = (meshPoints[i].y + meshPoints[i + 1].y + meshPoints[i + 2].y) / 3f;
+            triangleCentreHeight /= heightScale;
+            float gradientSampleValue = Mathf.InverseLerp(0, 1, triangleCentreHeight);
+            Color triangleColor = gradient.Evaluate(gradientSampleValue);
+            colors[i] = triangleColor;
+            colors[i+1] = triangleColor;
+            colors[i+2] = triangleColor;
+        }
+
+
         // Set the vertices and triangles as our Unity mesh
         mf.sharedMesh.Clear();
         mf.sharedMesh.vertices = meshPoints;
@@ -131,7 +173,10 @@ public class LowPolyTerrainScript : MonoBehaviour
         mf.sharedMesh.colors = colors;
     }
 
-    void CheckEditorVariables() {   
+    void CheckEditorVariables() {
+        heightScale = Mathf.Max(heightScale, 1);
+        //persistance = Mathf.Max(persistance, 1);
+        octaves = Mathf.Max(octaves, 1);
         terrainDimensions.x = Mathf.Max(terrainDimensions.x, 1);
         terrainDimensions.y = Mathf.Max(terrainDimensions.y, 1);
         sampleTries = Mathf.Max(sampleTries, 1);
