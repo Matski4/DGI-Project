@@ -15,10 +15,8 @@ public class LowPolyTerrainScript : MonoBehaviour
     [Header("Terrain settings")]
     public Vector2Int terrainDimensions = new Vector2Int(10, 10);
     public float heightScale = 10f;
-    [Range(0f, 1f)]
-    public float seaLevel;
-    [Range(0f, 1f)]
-    public float dampening;
+    //[Range(0f, 1f)]
+    //public float seaLevel;
     [Header("Poisson sampling settings")]
     public int sampleTries = 10;
     public float radiusError = 2f;
@@ -108,9 +106,9 @@ public class LowPolyTerrainScript : MonoBehaviour
             meshPoints[unity_v2] = new Vector3((float)tri.GetVertex(0).x, 0, (float)tri.GetVertex(0).y);
 
             // Sample Perlin noise for height values
-            meshPoints[unity_v0].y = PerlinNoiseGenerator.GetHeightValue(meshPoints[unity_v0], terrainDimensions, perlinOffset, octaves, persistance) * 2 - 1;
-            meshPoints[unity_v1].y = PerlinNoiseGenerator.GetHeightValue(meshPoints[unity_v1], terrainDimensions, perlinOffset, octaves, persistance) * 2 - 1;
-            meshPoints[unity_v2].y = PerlinNoiseGenerator.GetHeightValue(meshPoints[unity_v2], terrainDimensions, perlinOffset, octaves, persistance) * 2 - 1;
+            meshPoints[unity_v0].y = PerlinNoiseGenerator.GetHeightValue(meshPoints[unity_v0], terrainDimensions, perlinOffset, octaves, persistance);
+            meshPoints[unity_v1].y = PerlinNoiseGenerator.GetHeightValue(meshPoints[unity_v1], terrainDimensions, perlinOffset, octaves, persistance);
+            meshPoints[unity_v2].y = PerlinNoiseGenerator.GetHeightValue(meshPoints[unity_v2], terrainDimensions, perlinOffset, octaves, persistance);
 
             Vector3 triangleNormal = Vector3.Cross(meshPoints[unity_v1] - meshPoints[unity_v0], meshPoints[unity_v2] - meshPoints[unity_v0]);   // Cross product gives us the triangle normal
             normals[unity_v0] = triangleNormal;
@@ -135,33 +133,42 @@ public class LowPolyTerrainScript : MonoBehaviour
         }
 
 
-        // Then we normalize the vector heights so that we actually get triangles at "0" and maxheight
+        // When sampling our perlin noises we might have ended up in a range of say 0.25 to 0.80, we normalize it back to 0.0 to 1.0.
         float minValue = float.MaxValue;
         float maxValue = float.MinValue;
         foreach (Vector3 vertex in meshPoints) {
             if (vertex.y > maxValue) { maxValue = vertex.y; }
             if (vertex.y < minValue) { minValue = vertex.y; }
         }
-
         for(int i = 0; i < meshPoints.Length; ++i) {
-            meshPoints[i].y = (Mathf.InverseLerp(minValue, maxValue, meshPoints[i].y) * 2 - 0.7f) * heightScale;
-            if (meshPoints[i].y < seaLevel - 1f)
-            {
-                meshPoints[i].y /= heightScale;
-            }
+            meshPoints[i].y = (Mathf.InverseLerp(minValue, maxValue, meshPoints[i].y) * 2 - 0.7f);
         }
 
-
+        // Color the meshes according to their height
         for (int i = 0; i < meshPoints.Length-2; i += 3)
         {
             float triangleCentreHeight = (meshPoints[i].y + meshPoints[i + 1].y + meshPoints[i + 2].y) / 3f;
-            triangleCentreHeight /= heightScale;
-            float gradientSampleValue = Mathf.InverseLerp(0, 1, triangleCentreHeight);
+            //triangleCentreHeight /= heightScale;
+            float gradientSampleValue = Mathf.InverseLerp(-0.7f, 1.3f, triangleCentreHeight);
             Color triangleColor = gradient.Evaluate(gradientSampleValue);
             colors[i] = triangleColor;
             colors[i+1] = triangleColor;
             colors[i+2] = triangleColor;
         }
+
+        // Scale the mesh points according to the height scale
+        for (int i = 0; i < meshPoints.Length; ++i)
+        {
+            if (meshPoints[i].y < 0f)
+            {
+                meshPoints[i].y *= heightScale / 10f;
+            }
+            else {
+                meshPoints[i].y *= heightScale;
+
+            }
+        }
+
 
 
         // Set the vertices and triangles as our Unity mesh
