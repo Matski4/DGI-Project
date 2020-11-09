@@ -6,7 +6,7 @@ public class CameraController : MonoBehaviour
 
     /* Original version written by Windexglow 11-13-10
     
-        Modified for thesis by Mats Andersson 20-05-21
+        Modified for project by Mats Andersson in 2020
         */
 
 

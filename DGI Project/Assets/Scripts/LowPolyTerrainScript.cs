@@ -5,9 +5,10 @@ using TriangleNet;
 using TriangleNet.Geometry;
 
 /*  This script generates a low polygon terrain Mesh by performing the following steps:
- *  1. Generate random points within the public Height and Width values (using Sebastian Lagues poisson disc sampling implementation)
+ *  1. Generate random points within the public Height and Width values (using Sebastian Lagues poisson disc sampling implementation): https://www.youtube.com/watch?v=7WcmyxyFO7o
  *  2. Triangulate the points using Delauney triangulation (implementation API: https://github.com/mapbox/delaunator)
- *  3. 
+ *  3. Generate a heightmap by using several Perlin Noises using different octaves with different impact on the terrain: https://adrianb.io/2014/08/09/perlinnoise.html
+ *  4. Color the triangles in the mesh by sampling colors from a gradient depending on the height of the triangle
  */
 
 public class LowPolyTerrainScript : MonoBehaviour
@@ -47,6 +48,7 @@ public class LowPolyTerrainScript : MonoBehaviour
 
     private void OnValidate()
     {
+        // Check the editor variables so we don't get disallowed entries that break the implementation
         CheckEditorVariables();
 
         if (generateMesh == true) {
@@ -169,9 +171,7 @@ public class LowPolyTerrainScript : MonoBehaviour
             }
         }
 
-
-
-        // Set the vertices and triangles as our Unity mesh
+        // Clear the mesh to avoid errors, set all the used parts of the Unity mesh
         mf.sharedMesh.Clear();
         mf.sharedMesh.vertices = meshPoints;
         mf.sharedMesh.triangles = meshTriangles;
