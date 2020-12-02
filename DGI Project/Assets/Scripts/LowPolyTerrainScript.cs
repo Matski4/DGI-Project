@@ -16,8 +16,6 @@ public class LowPolyTerrainScript : MonoBehaviour
     [Header("Terrain settings")]
     public Vector2Int terrainDimensions = new Vector2Int(10, 10);
     public float heightScale = 10f;
-    //[Range(0f, 1f)]
-    //public float seaLevel;
     [Header("Poisson sampling settings")]
     public int sampleTries = 10;
     public float radiusError = 2f;
@@ -67,6 +65,9 @@ public class LowPolyTerrainScript : MonoBehaviour
             mf.sharedMesh = new UnityEngine.Mesh();
             mf.sharedMesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32;
         }
+
+        // Placeholder in used for dividing program to show steps
+        int step = 3;
         
         // Get a list of Vector2:s from the poisson disc sampling, these are our vertices
         poissonPoints = PoissonDiscSampling.GeneratePoints(radiusError, terrainDimensions, sampleTries);
@@ -112,21 +113,19 @@ public class LowPolyTerrainScript : MonoBehaviour
             meshPoints[unity_v1].y = PerlinNoiseGenerator.GetHeightValue(meshPoints[unity_v1], terrainDimensions, perlinOffset, octaves, persistance);
             meshPoints[unity_v2].y = PerlinNoiseGenerator.GetHeightValue(meshPoints[unity_v2], terrainDimensions, perlinOffset, octaves, persistance);
 
+
             Vector3 triangleNormal = Vector3.Cross(meshPoints[unity_v1] - meshPoints[unity_v0], meshPoints[unity_v2] - meshPoints[unity_v0]);   // Cross product gives us the triangle normal
             normals[unity_v0] = triangleNormal;
             normals[unity_v1] = triangleNormal;
             normals[unity_v2] = triangleNormal;
 
-            Color randomColor = new Color((tris/3) % 3 -1, ((tris / 3)+1) % 3 -1, ((tris / 3)+2) % 3 -1);
-            randomColor = new Color(Random.Range(0f,1f), Random.Range(0f, 1f), Random.Range(0f, 1f));
+            colors[unity_v0] = Color.grey;
+            colors[unity_v1] = Color.grey;
+            colors[unity_v2] = Color.grey;
 
-            colors[unity_v0] = randomColor;
-            colors[unity_v1] = randomColor;
-            colors[unity_v2] = randomColor;
-
-            uvs[unity_v0] = Vector3.zero;
-            uvs[unity_v1] = Vector3.zero;
-            uvs[unity_v2] = Vector3.zero;
+            //uvs[unity_v0] = Vector3.zero;
+            //uvs[unity_v1] = Vector3.zero;
+            //uvs[unity_v2] = Vector3.zero;
 
             meshTriangles[unity_v0] = unity_v0;
             meshTriangles[unity_v1] = unity_v1;
@@ -147,29 +146,31 @@ public class LowPolyTerrainScript : MonoBehaviour
         }
 
         // Color the meshes according to their height
-        for (int i = 0; i < meshPoints.Length-2; i += 3)
+        for (int i = 0; i < meshPoints.Length - 2; i += 3)
         {
             float triangleCentreHeight = (meshPoints[i].y + meshPoints[i + 1].y + meshPoints[i + 2].y) / 3f;
-            //triangleCentreHeight /= heightScale;
             float gradientSampleValue = Mathf.InverseLerp(-0.7f, 1.3f, triangleCentreHeight);
             Color triangleColor = gradient.Evaluate(gradientSampleValue);
             colors[i] = triangleColor;
-            colors[i+1] = triangleColor;
-            colors[i+2] = triangleColor;
+            colors[i + 1] = triangleColor;
+            colors[i + 2] = triangleColor;
         }
+
 
         // Scale the mesh points according to the height scale
         for (int i = 0; i < meshPoints.Length; ++i)
         {
             if (meshPoints[i].y < 0f)
             {
-                meshPoints[i].y *= heightScale / 10f;
+                meshPoints[i].y /= 100f;
             }
-            else {
+            else
+            {
                 meshPoints[i].y *= heightScale;
 
             }
         }
+
 
         // Clear the mesh to avoid errors, set all the used parts of the Unity mesh
         mf.sharedMesh.Clear();

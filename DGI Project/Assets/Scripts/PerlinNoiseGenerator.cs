@@ -19,10 +19,6 @@ public class PerlinNoiseGenerator
             frequency *= 2;
         }
 
-        //if (heightValue/maxValue > 1f) {
-            //Debug.Log("Heightvalue: " + heightValue/maxValue);
-        //}
-
         return heightValue/maxValue;
     }
 
