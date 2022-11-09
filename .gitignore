@@ -10,6 +10,11 @@
 [Ll]ogs/
 [Mm]emoryCaptures/
 
+# Ignore the buildfolder and the WebGL builds since I've build a web app to show the project
+BuildFolder/
+WebGL Builds/
+WebGL-build
+
 # Asset meta data should only be ignored when the corresponding asset is also ignored
 !/[Aa]ssets/**/*.meta
 

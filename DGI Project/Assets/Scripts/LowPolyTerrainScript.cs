@@ -29,19 +29,20 @@ public class LowPolyTerrainScript : MonoBehaviour
     public bool generateMesh = false;
 
     MeshFilter mf;
+    GameObject lowPolyTerrain;
 
     List<Vector2> poissonPoints;
 
     // Start is called before the first frame update
     void Start()
     {
-
+        lowPolyTerrain = this.gameObject;
     }
 
     // Update is called once per frame
     void Update()
     {
-
+        transform.Rotate(0, 0.05f, 0, Space.Self);
     }
 
     private void OnValidate()
@@ -55,6 +56,12 @@ public class LowPolyTerrainScript : MonoBehaviour
         }
     }
 
+    // Randomizes the Perlin X and Y, used for UI generate mesh button
+    public void GenerateRandomMesh() {
+        perlinOffset = new Vector2(Random.Range(0,1000), Random.Range(0,1000));
+        GenerateMesh();
+    }
+
 
     // Generates a Low Poly Mesh
     void GenerateMesh() {
@@ -66,7 +73,7 @@ public class LowPolyTerrainScript : MonoBehaviour
             mf.sharedMesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32;
         }
 
-        // Placeholder in used for dividing program to show steps
+        // Placeholder used for dividing program to show steps
         int step = 3;
         
         // Get a list of Vector2:s from the poisson disc sampling, these are our vertices
@@ -157,7 +164,7 @@ public class LowPolyTerrainScript : MonoBehaviour
         }
 
 
-        // Scale the mesh points according to the height scale
+        // Scale the mesh points according to the height scale and move them so that the origin is in the center
         for (int i = 0; i < meshPoints.Length; ++i)
         {
             if (meshPoints[i].y < 0f)
@@ -167,8 +174,9 @@ public class LowPolyTerrainScript : MonoBehaviour
             else
             {
                 meshPoints[i].y *= heightScale;
-
             }
+            meshPoints[i].x -= terrainDimensions.x / 2;
+            meshPoints[i].z -= terrainDimensions.y / 2;
         }
 
 
