@@ -17,6 +17,8 @@ decide the height for each vertex.
 4. Color the triangles by taking the average height of the triangle vertices
 and sampling a gradient to decide the color of the triangle.
 
+The main script used for generating is [LowPolyTerrain.cs](Assets/Scripts/LowPolyTerrainScript.cs)
+
 For the poisson disc sampling an existing implementation of Poisson Disc Sampling created by Sebastian Lague was used.
 An existing library for Delauney triangulation called Delaunator was used for the triangulation.
 The heightmap was generated using Unitys built in Perlin noise.
