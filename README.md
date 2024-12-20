@@ -2,7 +2,7 @@
 
 # DGI-Project
 
-**Interactive demo: [Unity Play](https://play.unity.com/mg/other/webgl-builds-268600).**
+**Interactive demo: [Unity Play](https://play.unity.com/en/games/91040814-0f9c-413d-9d6f-43e01cadb07f/low-poly-terrain).**
 
 This was my project for the course DH2323 - Computer Graphics and Interaction at KTH Royal Institute of Technology.
 The project was heavily inspired by a video presentation by Kristin Lague (last name was Stock at the time of the project) named [Procedurally Generated Low-Poly Terrains in Unity](https://www.youtube.com/watch?v=sRn8TL3EKDU).
